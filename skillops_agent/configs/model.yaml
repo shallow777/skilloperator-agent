@@ -1,0 +1,4 @@
+backbone: qwen-4b
+mode: stub
+decision_output: structured_update_proposal
+

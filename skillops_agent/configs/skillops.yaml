@@ -1,0 +1,8 @@
+actions:
+  - guard
+  - repair
+  - noop
+budget:
+  prefer_sparse_edits: true
+  max_edit_per_task: 1
+
