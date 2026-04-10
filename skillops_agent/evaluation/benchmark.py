@@ -6,9 +6,11 @@ from dataclasses import asdict
 
 from skillops_agent.agents.skillops_agent import SkillOpsAgent
 from skillops_agent.agents.task_agent import TaskAgent
+from skillops_agent.config import ModelConfig, load_model_config
 from skillops_agent.environments.continual_task_env import ContinualTaskEnvironment
 from skillops_agent.evaluation.metrics import StreamMetrics
 from skillops_agent.policies.heuristic_policy import HeuristicSkillOpsPolicy
+from skillops_agent.policies.qwen_policy import QwenSkillOpsPolicy
 from skillops_agent.repository.edit_record import EditRecord, SkillAction
 from skillops_agent.repository.repository import SkillRepository
 from skillops_agent.repository.skill import Skill, SkillContract, SkillProcedure
@@ -61,11 +63,19 @@ def build_default_repository() -> SkillRepository:
     return repository
 
 
-def run_stream() -> tuple[SkillRepository, StreamMetrics]:
+def build_skillops_policy(config: ModelConfig):
+    """Create the configured SkillOps policy."""
+    if config.policy == "qwen":
+        return QwenSkillOpsPolicy(config)
+    return HeuristicSkillOpsPolicy()
+
+
+def run_stream(config: ModelConfig | None = None) -> tuple[SkillRepository, StreamMetrics]:
     """Run the full continual loop for the default benchmark."""
+    resolved_config = config or load_model_config()
     repository = build_default_repository()
     task_agent = TaskAgent()
-    skillops_agent = SkillOpsAgent(policy=HeuristicSkillOpsPolicy())
+    skillops_agent = SkillOpsAgent(policy=build_skillops_policy(resolved_config))
     verifier = Verifier(task_agent)
     environment = ContinualTaskEnvironment.default_stream()
     metrics = StreamMetrics()

@@ -65,13 +65,42 @@ This distinction is intentional: V1 is about repository maintenance discipline, 
 The project includes two policy paths:
 
 - `HeuristicSkillOpsPolicy`: deterministic baseline used by the toy benchmark
-- `QwenSkillOpsPolicy`: prompt/stub interface for future Qwen-4B-backed decision making
+- `QwenSkillOpsPolicy`: local `transformers`-backed policy that loads Qwen directly and asks the model to emit a typed maintenance decision
 
-V1 does not deploy Qwen-4B, but the policy interface is structured so the heuristic policy can later be replaced by:
+The policy interface remains replaceable, but the default configuration now targets a locally loaded Qwen 4B model:
 
-- prompted Qwen-4B
-- supervised fine-tuned Qwen-4B
-- RL-trained repository maintenance policy
+- `backbone: qwen3.5-4b`
+- `policy: qwen`
+- `mode: local`
+- `model_name: Qwen/Qwen3-4B`
+
+### Current Qwen Config Path
+
+`QwenSkillOpsPolicy` now loads parameters locally from [`skillops_agent/configs/model.yaml`](/Users/hehaixing/Documents/AI/skillagent/skill_operator_agent/skillops_agent/configs/model.yaml), with environment variable overrides.
+
+Supported overrides:
+
+- `SKILLOPS_POLICY`
+- `SKILLOPS_MODEL_MODE`
+- `SKILLOPS_MODEL_NAME`
+- `SKILLOPS_TORCH_DTYPE`
+- `SKILLOPS_DEVICE_MAP`
+- `SKILLOPS_ATTN_IMPLEMENTATION`
+- `SKILLOPS_MAX_NEW_TOKENS`
+- `SKILLOPS_TEMPERATURE`
+- `SKILLOPS_TOP_P`
+
+Example:
+
+```bash
+SKILLOPS_POLICY=qwen \
+SKILLOPS_MODEL_MODE=local \
+SKILLOPS_MODEL_NAME=Qwen/Qwen3-4B \
+SKILLOPS_DEVICE_MAP=auto \
+python3 main.py
+```
+
+This path now calls `transformers.AutoTokenizer.from_pretrained(...)` and `transformers.AutoModelForCausalLM.from_pretrained(...)` directly. The model is expected to return JSON with `action`, `target_skill_id`, `rationale`, `patch`, and `confidence`.
 
 ## Toy Continual Benchmark
 
@@ -171,7 +200,7 @@ skill_operator_agent/
 - Single synthetic domain only
 - Deterministic task execution model
 - Replay regression uses a very small historical successful set
-- Qwen-4B path is a stub interface rather than a deployed model
+- Local Qwen inference requires the model weights to be available from the configured Hugging Face path or local model directory
 - No learned policy training in V1
 
 ## Natural Next Steps

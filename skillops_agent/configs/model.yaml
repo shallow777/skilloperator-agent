@@ -1,4 +1,14 @@
-backbone: qwen-4b
-mode: stub
+backbone: qwen3.5-4b
+mode: local
+policy: qwen
+model_name: Qwen/Qwen3-4B
+torch_dtype: auto
+device_map: auto
+attn_implementation: sdpa
+max_new_tokens: 512
+temperature: 0.1
+top_p: 0.9
+api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+api_key_env: DASHSCOPE_API_KEY
+timeout_seconds: 30
 decision_output: structured_update_proposal
-
